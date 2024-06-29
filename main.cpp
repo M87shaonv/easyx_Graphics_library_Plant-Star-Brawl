@@ -7,11 +7,23 @@
 #include "SelectorRoleScene.h"
 #include "Atlas.h"
 #include "util.h"
+#include "Platform.h"
+#include "Player.h"
+#include "Bullet.h"
+
+std::vector<Bullet*> bullets;//子弹集合
 ExMessage msg;
 Scene* menu_scene = new MenuScene();
 Scene* game_scene = new GameScene();
 Scene* selector_role_scene = new SelectorRoleScene();
 SceneManager scene_manager;
+Camera camera;
+std::vector<Platform> platforms;
+bool ISDEBUGING = false;//是否处于调试模式
+Player* player1 = nullptr;
+Player* player2 = nullptr;
+IMAGE* img_player1_avatar = nullptr;
+IMAGE* img_player2_avatar = nullptr;
 int main()
 {
     init();
@@ -23,9 +35,14 @@ int main()
         {
             scene_manager.on_input(msg);
         }
-        scene_manager.on_update();//更新场景
+        static DWORD last_tick_time = GetTickCount();//当前的系统时钟滴答数
+        DWORD current_tick_time = GetTickCount();
+        DWORD delta_tick_time = current_tick_time - last_tick_time;//计算两次系统时钟滴答（tick）之间的时间间隔
+        scene_manager.on_update(delta_tick_time);//更新场景
+        last_tick_time = current_tick_time;
+
         cleardevice();//清除屏幕内容
-        scene_manager.on_draw();//绘制场景
+        scene_manager.on_draw(camera);//绘制场景
         FlushBatchDraw();//将之前缓存图形绘制操作渲染到屏幕上
 
         DWORD frame_end_time = GetTickCount();
@@ -41,6 +58,8 @@ void init()
 {
     load_game_resources();//加载游戏资源
     initgraph(1280, 720, EW_SHOWCONSOLE);//第三个参数显示控制台
+    settextstyle(28, 0, _T("IPix"));//设置字体
+    setbkmode(TRANSPARENT);//设置背景透明
     BeginBatchDraw();//开启批处理绘制
     scene_manager.setCurrentScene(menu_scene); //设置当前场景为菜单场景
 }
@@ -56,9 +75,12 @@ void flip_atlas(Atlas& src, Atlas& dst)
 }
 void load_game_resources()
 {
+    //!注意路径
     AddFontResourceEx(_T("resources/IPix.ttf"), FR_PRIVATE, NULL);//加载字体
     loadimage(&img_menu_bg, _T("resources/menu_background.png"));
     loadimage(&img_VS, _T("resources/VS.png"));
+    loadimage(&img_1P_text, _T("resources/1P.png"));
+    loadimage(&img_2P_text, _T("resources/2P.png"));
     loadimage(&img_1P_desc, _T("resources/1P_desc.png"));
     loadimage(&img_2P_desc, _T("resources/2P_desc.png"));
     loadimage(&img_gravestone_right, _T("resources/gravestone.png"));
@@ -93,18 +115,18 @@ void load_game_resources()
     flip_atlas(atlas_peashooter_idle_right, atlas_peashooter_idle_left);
     atlas_peashooter_run_right.LoadFormFile(_T("resources/peashooter_run_%d.png"), 5);
     flip_atlas(atlas_peashooter_run_right, atlas_peashooter_run_left);
-    atlas_peashooter_attack_ex_right.LoadFormFile(_T("resources/atlas_peashooter_attack_ex_%d.png"), 9);
+    atlas_peashooter_attack_ex_right.LoadFormFile(_T("resources/peashooter_attack_ex_%d.png"), 3);
     flip_atlas(atlas_peashooter_attack_ex_right, atlas_peashooter_attack_ex_left);
     atlas_peashooter_die_right.LoadFormFile(_T("resources/peashooter_die_%d.png"), 4);
     flip_atlas(atlas_peashooter_die_right, atlas_peashooter_die_left);
 
-    atlas_sunflower_idle_right.LoadFormFile(_T("resources/sunflower_idle_%d.png"), 9);
+    atlas_sunflower_idle_right.LoadFormFile(_T("resources/sunflower_idle_%d.png"), 8);
     flip_atlas(atlas_sunflower_idle_right, atlas_sunflower_idle_left);
     atlas_sunflower_run_right.LoadFormFile(_T("resources/sunflower_run_%d.png"), 5);
     flip_atlas(atlas_sunflower_run_right, atlas_sunflower_run_left);
-    atlas_sunflower_attack_ex_right.LoadFormFile(_T("resources/atlas_sunflower_attack_ex_%d.png"), 9);
+    atlas_sunflower_attack_ex_right.LoadFormFile(_T("resources/sunflower_attack_ex_%d.png"), 9);
     flip_atlas(atlas_sunflower_attack_ex_right, atlas_sunflower_attack_ex_left);
-    atlas_sunflower_die_right.LoadFormFile(_T("resources/sunflower_die_%d.png"), 4);
+    atlas_sunflower_die_right.LoadFormFile(_T("resources/sunflower_die_%d.png"), 2);
     flip_atlas(atlas_sunflower_die_right, atlas_sunflower_die_left);
 
     loadimage(&img_pea, _T("resources/pea.png"));
@@ -139,5 +161,5 @@ void load_game_resources()
     mciSendString(_T("open resources/sun_text.mp3 alias sun_text"), NULL, 0, NULL);
     mciSendString(_T("open resources/ui_confirm.wav alias ui_confirm"), NULL, 0, NULL);
     mciSendString(_T("open resources/ui_switch.wav alias ui_switch"), NULL, 0, NULL);
-    mciSendString(_T("open resources/ui_win.wav alias ui_win"), NULL, 0, NULL);
+    mciSendString(_T("open resources/ui_win.mp3 alias ui_win"), NULL, 0, NULL);
 }

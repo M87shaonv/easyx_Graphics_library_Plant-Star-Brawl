@@ -7,6 +7,8 @@ void flip_atlas(Atlas& src, Atlas& dst);//翻转图集
 void load_game_resources();//加载游戏资源
 
 #pragma region 图片资源
+#pragma comment(lib,"Winmm.lib")
+
 IMAGE img_menu_bg;//菜单背景
 IMAGE img_VS;//vs艺术字图片
 

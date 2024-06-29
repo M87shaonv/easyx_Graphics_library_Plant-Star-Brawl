@@ -40,13 +40,13 @@ public:
         }
         current_scene->on_enter();
     }
-    void on_update()//更新当前场景
+    void on_update(int dt)//更新当前场景
     {
-        current_scene->on_update();
+        current_scene->on_update(dt);
     }
-    void on_draw()//绘制当前场景
+    void on_draw(const Camera& camera)//绘制当前场景
     {
-        current_scene->on_draw();
+        current_scene->on_draw(camera);
     }
     void on_input(const ExMessage& msg)//处理输入
     {

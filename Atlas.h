@@ -15,9 +15,9 @@ public:
         image_list.resize(num);
 
         TCHAR path[MAX_PATH]; //存放图片路径的字符串,MAX_PATH是系统定义的最大路径长度,260个字符
-        for (int i = 1; i <= num; ++i)
+        for (int i = 0; i < num; ++i)
         {
-            _stprintf_s(path, path_template, i);
+            _stprintf_s(path, path_template, i + 1);
             loadimage(&image_list[i], path);
         }
     }
@@ -27,7 +27,7 @@ public:
     }
     int size()
     {
-        return image_list.size();
+        return (int)image_list.size();
     }
     IMAGE* GetImage(const int index)
     {
@@ -40,6 +40,7 @@ public:
     {
         image_list.push_back(img);
     }
+
 private:
     std::vector<IMAGE> image_list;//存放所有图片的vector
 };
